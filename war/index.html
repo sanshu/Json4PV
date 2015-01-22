@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Construct designer</title>
+
+<link rel="stylesheet" type="text/css"
+	href="http://yui.yahooapis.com/3.14.1/build/cssreset/cssreset-min.css">
+<link rel="stylesheet"	href="http://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+<link rel="stylesheet" 	href="http://code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+<script type="text/javascript"	src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+<script type="text/javascript"	src="http://code.jquery.com/ui/1.11.0/jquery-ui.min.js"></script>
+<script type="text/javascript" 	src="http://proteins.burnham.org:8080/Protael/js/snap.svg-min.js"></script>
+<link rel="stylesheet" href="http://proteins.burnham.org:8080/Protael/css/main.css">
+<script type="text/javascript" src="http://proteins.burnham.org:8080/Protael/js/protael.0.1.0.min.js"></script>
+
+<style>
+ body {padding-top: 10px;}
+</style>
+
+<script>
+	var urlParams;
+	(window.onpopstate = function() {
+		var match, pl = /\+/g, // Regex for replacing addition symbol with a space
+		search = /([^&=]+)=?([^&]*)/g, decode = function(s) {
+			return decodeURIComponent(s.replace(pl, " "));
+		}, query = window.location.search.substring(1);
+
+		urlParams = {};
+		while (match = search.exec(query))
+			urlParams[decode(match[1])] = decode(match[2]);
+	})();
+
+	var dir = urlParams["dir"] || 'db/CSGID/cs/_IDP00005_';
+	var limit = urlParams["limit"] || 20;
+	var showAli = urlParams["ali"] || true;
+
+	var jsonurl = 'getjson?dir=' + dir + '&limit=' + limit + '&ali=' + showAli;
+
+	$(document).ready(
+			function() {
+				$.getJSON(jsonurl, {
+					format : "json"
+				}).done(
+						function(protein) {
+							ProtaelBrowser(protein, "svgholder", "95%", "95%",
+									true);
+
+							$("#xtalpred_link").attr(
+									"href",
+									"http://ffas.burnham.org/XtalPred-cgi/result.pl?dir="
+											+ dir);
+							$("#xtalpred_link").text("XtalPred");
+						});
+			});
+</script>
+<script>
+	(function(i, s, o, g, r, a, m) {
+		i['GoogleAnalyticsObject'] = r;
+		i[r] = i[r] || function() {
+			(i[r].q = i[r].q || []).push(arguments)
+		}, i[r].l = 1 * new Date();
+		a = s.createElement(o), m = s.getElementsByTagName(o)[0];
+		a.async = 1;
+		a.src = g;
+		m.parentNode.insertBefore(a, m)
+	})(window, document, 'script', '//www.google-analytics.com/analytics.js',
+			'ga');
+
+	ga('create', 'UA-50502533-1', 'burnham.org');
+	ga('require', 'displayfeatures');
+	ga('send', 'pageview');
+</script>
+</head>
+<body>
+	<div id="svgholder"></div>
+	<a id="xtalpred_link"></a>	
+    <script type="text/javascript"  src="http://proteins.burnham.org:8080/Protael/js/vendor/FileSaver_Blob.js"></script>
+</body>
+</html>
