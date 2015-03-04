@@ -22,12 +22,11 @@ import org.godziklab.protael.dao.ALiObj;
 import org.godziklab.protael.dao.Feature;
 import org.godziklab.protael.dao.Interval;
 import org.godziklab.protael.dao.ProteinObj;
-import org.godziklab.protael.dao.QTrack; 
+import org.godziklab.protael.dao.QTrack;
 import org.godziklab.protael.dao.SeqColors;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
 
 /**
  * Servlet implementation class XtalPred2JSON
@@ -57,6 +56,12 @@ public class XtalPred2JSON extends HttpServlet {
 
 	// transmembrane helices predicted by TMHMM
 	private static final String tmhdpred = "A.tmh";
+
+	// surface accessibility (we show column 5)
+	private static final String surfpred = "A.nets";
+
+	// evolutionary conservation
+	private static final String evolconspred = "A.co";
 
 	private boolean showAli = false;
 
@@ -119,6 +124,8 @@ public class XtalPred2JSON extends HttpServlet {
 			loadCoils(protein, url, out);
 			loadSummary(protein, summaryUrl, out);
 			loadPdb101(protein, pdbaliUrl, out, limit);
+			loadSurfpred(protein, url, out);
+			loadCorservpred(protein, url, out);
 		}
 
 		// Gson gson = new Gson();
@@ -128,6 +135,95 @@ public class XtalPred2JSON extends HttpServlet {
 		out.println(json);
 		long t2 = System.currentTimeMillis();
 		System.out.println("Time: " + ((t2 - t1) * 0.001));
+	}
+
+	private boolean loadCorservpred(ProteinObj p, String url, PrintWriter out) {
+		String loadUrl = url + evolconspred;
+		System.out.println("Loading evolutionary conservation file : " + loadUrl);
+		// out.println("Loading disorder file : " + loadUrl);
+
+		String l;
+		BufferedReader input;
+		try {
+			input = new BufferedReader(new InputStreamReader(
+					new URL(loadUrl).openStream()));
+
+			QTrack track = new QTrack();
+			track.setColor("grey");
+			track.setType("column");
+			track.setLabel("Evolutionary conservation");
+
+			while ((l = input.readLine()) != null) {
+				if (l.isEmpty()) {
+					continue;
+				}
+				if (l.startsWith("*")){
+					break; // end of data
+				}
+
+				String[] pats = l.split("\\s+");
+				if (pats.length < 3) {
+					System.out.println("Line is too short " + l);
+					continue;
+				}
+				track.addValue(Float.parseFloat(pats[2]));
+			}
+			p.addQTrack(track);
+			return true;
+		} catch (MalformedURLException e) {
+
+			e.printStackTrace();
+		} catch (IOException e) {
+
+			e.printStackTrace();
+		}
+		return false;
+
+	}
+
+	private boolean loadSurfpred(ProteinObj p, String url, PrintWriter out) {
+		String loadUrl = url + surfpred;
+		System.out.println("Loading surface accesibility file : " + loadUrl);
+		// out.println("Loading disorder file : " + loadUrl);
+
+		String l;
+		// StringBuilder b = new StringBuilder();
+		BufferedReader input;
+		try {
+			input = new BufferedReader(new InputStreamReader(
+					new URL(loadUrl).openStream()));
+
+			QTrack track = new QTrack();
+			track.setColor("green");
+			track.setType("column");
+			track.setLabel("Surface accesibility");
+
+			// List<Float> values = new ArrayList<Float>();
+
+			while ((l = input.readLine()) != null) {
+
+				// skip comments;
+				if (l.isEmpty() || l.startsWith("#")) {
+					continue;
+				}
+
+				String[] pats = l.split("\\s+");
+				if (pats.length < 5) {
+					System.out.println("Line is too short " + l);
+					continue;
+				}
+				track.addValue(Float.parseFloat(pats[4]));
+			}
+			p.addQTrack(track);
+			return true;
+		} catch (MalformedURLException e) {
+
+			e.printStackTrace();
+		} catch (IOException e) {
+
+			e.printStackTrace();
+		}
+		return false;
 	}
 
 	private boolean loadFasta(ProteinObj p, String url, PrintWriter out) {
@@ -155,10 +251,10 @@ public class XtalPred2JSON extends HttpServlet {
 			p.setSequence(b.toString());
 			return true;
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 		return false;
@@ -170,7 +266,6 @@ public class XtalPred2JSON extends HttpServlet {
 		// out.println("Loading disorder file : " + loadUrl);
 
 		String l;
-		StringBuilder b = new StringBuilder();
 		BufferedReader input;
 		try {
 			input = new BufferedReader(new InputStreamReader(
@@ -181,8 +276,6 @@ public class XtalPred2JSON extends HttpServlet {
 			QTrack diso = new QTrack();
 			diso.setColor("orange");
 			diso.setLabel("Disorder");
-
-			List<Float> values = new ArrayList<Float>();
 
 			while ((l = input.readLine()) != null) {
 
@@ -200,10 +293,10 @@ public class XtalPred2JSON extends HttpServlet {
 			p.addQTrack(diso);
 			return true;
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 		return false;
@@ -281,10 +374,10 @@ public class XtalPred2JSON extends HttpServlet {
 			p.addQTrack(strand);
 			return true;
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 		return false;
@@ -293,7 +386,6 @@ public class XtalPred2JSON extends HttpServlet {
 	private boolean loadTmmh(ProteinObj p, String url, PrintWriter out) {
 		String loadUrl = url + tmhdpred;
 		System.out.println("Loading tmhmm file : " + loadUrl);
-		// out.println("Loading tmhmm file : " + loadUrl);
 
 		String l;
 		BufferedReader input;
@@ -325,10 +417,10 @@ public class XtalPred2JSON extends HttpServlet {
 			}
 			return true;
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 		return false;
@@ -369,10 +461,10 @@ public class XtalPred2JSON extends HttpServlet {
 
 			return true;
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 		return false;
@@ -413,10 +505,10 @@ public class XtalPred2JSON extends HttpServlet {
 
 			return true;
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 		return false;
@@ -455,10 +547,10 @@ public class XtalPred2JSON extends HttpServlet {
 
 			return true;
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 		return false;
@@ -510,13 +602,10 @@ public class XtalPred2JSON extends HttpServlet {
 					if (pt.length > 0)
 						start = Integer.parseInt(pt[0]);
 
-					// System.out.println("1|" + pt[1]);
-
 					Matcher m = pattern.matcher(pt[1].toString());
 					while (m.find()) {
 						Interval g = new Interval(m.start(), m.end());
 						gaps.add(g);
-						// System.out.println("gap:" + g.toString());
 					}
 				} else if (start > 0) {
 
@@ -539,13 +628,13 @@ public class XtalPred2JSON extends HttpServlet {
 							ali.getPdbid().toUpperCase() + ":"
 									+ ali.getChain().toUpperCase(), DSSP_BASE
 									+ File.separator + "merged.zip");
-					
+
 					if (data.length() > 0) {
 						StringBuilder sb = new StringBuilder(data);
 
 						// remove the very first gap (ali start)
 						sb.delete(0, ali.getFragmentStart() - 1);
-					
+
 						// insert gaps from aligned PDS seq into SS&Diso
 						Matcher m = pattern.matcher(seq.toString());
 						List<Interval> othergaps = new ArrayList<Interval>();
@@ -560,8 +649,8 @@ public class XtalPred2JSON extends HttpServlet {
 							sb.insert(g.getStart(),
 									lineOfDOts(g.getEnd() - g.getStart()));
 						}
-			
-                                                for (int z = gaps.size() - 1; z >= 0; z--) {
+
+						for (int z = gaps.size() - 1; z >= 0; z--) {
 							Interval g = gaps.get(z);
 							sb.delete(g.getStart(), g.getEnd());
 						}
@@ -573,7 +662,6 @@ public class XtalPred2JSON extends HttpServlet {
 						ali.setSeqColors(sq);
 					}
 					ali.setSequence(seq);
-					// System.out.println("7|" + ali.getSequence());
 
 					p.addAli(ali);
 
@@ -586,10 +674,8 @@ public class XtalPred2JSON extends HttpServlet {
 			}
 			return true;
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return false;
