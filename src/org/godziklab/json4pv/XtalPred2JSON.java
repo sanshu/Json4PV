@@ -149,7 +149,7 @@ public class XtalPred2JSON extends HttpServlet {
 					new URL(loadUrl).openStream()));
 
 			QTrack track = new QTrack();
-			track.setColor("grey");
+			track.setColor("green");
 			track.setType("column");
 			track.setLabel("Evolutionary conservation");
 
@@ -194,7 +194,7 @@ public class XtalPred2JSON extends HttpServlet {
 					new URL(loadUrl).openStream()));
 
 			QTrack track = new QTrack();
-			track.setColor("green");
+			track.setColor("#7C0000");
 			track.setType("column");
 			track.setLabel("Surface accesibility");
 
