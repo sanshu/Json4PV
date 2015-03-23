@@ -566,8 +566,6 @@ public class XtalPred2JSON extends HttpServlet {
 	private boolean loadPdb101(ProteinObj p, String loadUrl, PrintWriter out,
 			int limit) {
 		System.out.println("Loading psi-blast file : " + loadUrl);
-		// out.println("Loading tmhmm file : " + loadUrl);
-
 		String l;
 		BufferedReader input;
 
@@ -626,7 +624,7 @@ public class XtalPred2JSON extends HttpServlet {
 					// SS and Diso of the original PDS seq
 					String data = DSSPExtractor.getDSSPFromZip(
 							ali.getPdbid().toUpperCase() + ":"
-									+ ali.getChain().toUpperCase(), DSSP_BASE
+									+ ali.getChain(), DSSP_BASE
 									+ File.separator + "merged.zip");
 
 					if (data.length() > 0) {
