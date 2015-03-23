@@ -194,7 +194,7 @@ public class XtalPred2JSON extends HttpServlet {
 					new URL(loadUrl).openStream()));
 
 			QTrack track = new QTrack();
-			track.setColor("#7C0000");
+			track.setColor("#8F6B00");
 			track.setType("column");
 			track.setLabel("Surface accesibility");
 
