@@ -26,19 +26,22 @@ public class ProteinObj {
 
 	public ProteinObj() {
 		overlayfeatures.setLabel("predictions");
-		seqcolors.addColor("H", "red");
-		seqcolors.addColor("E", "blue");
-		seqcolors.addColor("C", "#DDD");
+		String coil = "#696969";;
+		String helix = "red";
+		String strand = "blue";
+		seqcolors.addColor("H", helix);
+		seqcolors.addColor("E", strand);
+		seqcolors.addColor("C", coil);
 
-		seqcolors.addColor("G", "red");
-		seqcolors.addColor("I", "red");
+		seqcolors.addColor("G", helix);
+		seqcolors.addColor("I", helix);
 
-		seqcolors.addColor("B", "blue");
-		seqcolors.addColor("T", "#DDD");
+		seqcolors.addColor("B", strand);
+		seqcolors.addColor("T", coil);
 
-		seqcolors.addColor("S", "#DDD");
+		seqcolors.addColor("S", coil);
 		seqcolors.addColor(" ", "#DDD");
-		seqcolors.addColor("X", "orange");
+		seqcolors.addColor("X", "orange"); // disorder
 	}
 
 	public void setAlidisplay(boolean alidisplay) {
