@@ -108,8 +108,6 @@ public class XtalPred2JSON extends HttpServlet {
 				new URL(summaryUrl).openStream()));
 
 		PrintWriter out = response.getWriter();
-		String l;
-
 		ProteinObj protein = new ProteinObj();
 		protein.setAlidisplay(showAli);
 

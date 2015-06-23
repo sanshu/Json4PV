@@ -23,6 +23,9 @@ import java.util.zip.ZipOutputStream;
 
 public class DSSPExtractor {
 
+
+	
+	/* Called from main JSON4PV servlet*/
 	public static String getDSSPFromZip(String pdbId, String zipLocation) {
 		ZipFile zip;
 		try {
@@ -57,27 +60,9 @@ public class DSSPExtractor {
 		return "";
 	}
 
-	/*
-	 * public static String getDSSP(String pdbId, String file) {
-	 * System.out.println(
-	 * "Dont use me! I'm too slow (DSSPExtractor.getDSSP(String pdbId, String file) )"
-	 * ); System.out.println("Extracting SS and DIS for: " + pdbId);
-	 * 
-	 * BufferedReader input; try { input = new BufferedReader(new
-	 * FileReader(file)); // TODO: NOPE! Chain could lower case! pdbId =
-	 * pdbId.toUpperCase(); String line; boolean found = false; while ((line =
-	 * input.readLine()) != null) { if (line.startsWith(">" + pdbId)) { found =
-	 * true; } else if (found) { input.close(); return line; } } input.close();
-	 * } catch (FileNotFoundException e) { // TODO Auto-generated catch block
-	 * e.printStackTrace(); } catch (IOException e) { // TODO Auto-generated
-	 * catch block e.printStackTrace(); }
-	 * 
-	 * return ""; }
-	 */
-
 	/** all other functions are not used on server side **/
-	public static String getSSandDis(String pdb, String chain, String dir) {
-		return getSSandDis(pdb + ":" + chain, dir);
+	public static String getSSandDis(String pdb, String chain, String dir, String chainSep) {
+		return getSSandDis(pdb + chainSep + chain, dir);
 	}
 
 	public static String getSSandDis(String pdbAndChain, String dir) {
@@ -117,13 +102,11 @@ public class DSSPExtractor {
 			res = DSSPExtractor.mergeSSandDiso(ssb.toString(), dsb.toString(),
 					pdbAndChain);
 			input.close();
-			// System.out.println(res + "\n ");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 		return res;
 	}
 
@@ -145,7 +128,6 @@ public class DSSPExtractor {
 			overlapped.add(pdb + "\n" + ss + "\n" + diso);
 		}
 		return res.toString();
-
 	}
 
 	private static String pdbFromHeaderNoChain(String h) {
@@ -160,7 +142,7 @@ public class DSSPExtractor {
 
 	}
 
-	private static void splitFile(String file, String outDir, boolean useChain)
+	private static void splitFile(String file, String outDir, boolean useChain, String chainSep)
 			throws IOException {
 		BufferedReader input;
 		FileWriter output;
@@ -179,7 +161,9 @@ public class DSSPExtractor {
 					System.out.println("Pdb # " + i + "... ");
 				}
 				if (!pdb.isEmpty()) {
-					// System.out.println(outDir + pdb);
+					if (chainSep != ":")
+						pdb = pdb.replace(":",chainSep);
+					 //System.out.println(outDir + pdb);
 					output = new FileWriter(new File(outDir + pdb), true);
 					output.append(ssb.toString() + "\n");
 					output.close();
@@ -193,6 +177,7 @@ public class DSSPExtractor {
 					pdb = DSSPExtractor.pdbFromHeader(line);
 				else
 					pdb = DSSPExtractor.pdbFromHeaderNoChain(line);
+				
 				if (pdb.length() > 6) {
 					System.out.println(pdb);
 
@@ -202,7 +187,6 @@ public class DSSPExtractor {
 			}
 		}
 		input.close();
-
 	}
 
 	/**
@@ -213,7 +197,7 @@ public class DSSPExtractor {
 	 * @param base
 	 *            folder in which ss_dis.txt file is located
 	 */
-	public static void prepareData(String base) {
+	public static void prepareData(String base, String chainSeparator) {
 		String mainFile = base + File.separator + "ss_dis.txt";
 		String zipResult = base + File.separator + "merged.zip";
 		String split = base + File.separator + "split" + File.separator;
@@ -227,7 +211,7 @@ public class DSSPExtractor {
 			// pdb and chain
 
 			System.out.println("Splitting main file...");
-			DSSPExtractor.splitFile(mainFile, split, true);
+			DSSPExtractor.splitFile(mainFile, split, true, chainSeparator);
 
 			DSSPExtractor.overCount = 0;
 			DSSPExtractor.overlapped = new ArrayList<String>();
@@ -254,6 +238,13 @@ public class DSSPExtractor {
 				String mergedS = ">" + pdb + "\n"
 						+ DSSPExtractor.getSSandDis(pdb, split) + "\n";
 
+				// because of the diffrence in verzions we need to create zip
+				// manually
+				BufferedWriter w1 = new BufferedWriter(new FileWriter(merged
+						+ pdb + ".txt"));
+				w1.append(mergedS + "\n");
+				w1.close();
+
 				// FileInputStream fis = new FileInputStream(files[i]);
 				InputStream fis = new ByteArrayInputStream(
 						mergedS.getBytes(StandardCharsets.UTF_8));
@@ -267,27 +258,13 @@ public class DSSPExtractor {
 				while ((length = fis.read(buffer)) > 0) {
 					zos.write(buffer, 0, length);
 				}
-
+				
 				zos.closeEntry();
+
 				fis.close();
 			}
+			zos.flush();
 			zos.close();
-
-			// //
-			// // BufferedWriter w = new BufferedWriter(new FileWriter(base
-			// // + File.separator + "ss_diso_merged.txt"));
-			// for (File f : listOfFiles) {
-			// // file name is PDB:A or PDB:AA //
-			// // chain could be upper or lower case
-			// String pdb = f.getName(); //
-			// String mergedS = DSSPExtractor.getSSandDis(pdb, split); //
-			// // w.append(">" + pdb + "\n" + mergedS + "\n");
-			// BufferedWriter w1 = new BufferedWriter(new FileWriter(merged
-			// + pdb + ".txt"));
-			// w1.append(">" + pdb + "\n" + mergedS + "\n");
-			// w1.close();
-			// } //
-			// w.close();
 
 			/* just a count of possible overlaps */
 			if (overCount > 0) {
@@ -309,7 +286,10 @@ public class DSSPExtractor {
 	}
 
 	public static void main(String args[]) {
-		DSSPExtractor.prepareData("/Users/msedova/Data/dssp");
+		// FOR FSN do not use chain separator 
+		DSSPExtractor.prepareData("/Users/msedova/Data/dssp", "");
+		// For XtalPred results use ":"
+	//	DSSPExtractor.prepareData("/Users/msedova/Data/dssp", ";");
 		System.out
 				.println("DONE\nDon't forget to copy merged.zip into war/data/");
 		// String r = DSSPExtractor.getSSandDis("9XIM", "A",
