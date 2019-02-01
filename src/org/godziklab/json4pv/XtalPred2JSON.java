@@ -39,8 +39,6 @@ public class XtalPred2JSON extends HttpServlet {
     private static final String BASE_URL = FFAS_PREFIX + "download.pl?dir=d";
     private static final String PDBSS_URL = "http://www.rcsb.org/pdb/explore/sequenceText.do?structureId=3RGZ&chainId=A&format=txt";
 
-    private static String DSSP = "";
-
     private static String DSSP_BASE = "";
     // sequence in FASTA
     private static final String fasta = "A.csq";
@@ -72,7 +70,6 @@ public class XtalPred2JSON extends HttpServlet {
      */
     public XtalPred2JSON() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
     /**
@@ -84,8 +81,6 @@ public class XtalPred2JSON extends HttpServlet {
         long t1 = System.currentTimeMillis();
         String dir = request.getParameter("dir");
         int limit = 20;
-        DSSP = getServletContext().getRealPath(
-                "/WEB-INF/data/ss_diso_merged.txt");
         DSSP_BASE = getServletContext().getRealPath("/data/");
 
         try {
@@ -103,8 +98,6 @@ public class XtalPred2JSON extends HttpServlet {
 
         response.setContentType("text/plain");
         response.setHeader("Access-Control-Allow-Origin", "*");
-        BufferedReader input = new BufferedReader(new InputStreamReader(
-                new URL(summaryUrl).openStream()));
 
         PrintWriter out = response.getWriter();
         ProteinObj protein = new ProteinObj();
@@ -124,7 +117,6 @@ public class XtalPred2JSON extends HttpServlet {
             loadCorservpred(protein, url, out);
         }
 
-        // Gson gson = new Gson();
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
         String json = gson.toJson(protein);
@@ -167,23 +159,18 @@ public class XtalPred2JSON extends HttpServlet {
             p.addQTrack(track);
             return true;
         } catch (MalformedURLException e) {
-
             e.printStackTrace();
         } catch (IOException e) {
-
             e.printStackTrace();
         }
         return false;
-
     }
 
     private boolean loadSurfpred(ProteinObj p, String url, PrintWriter out) {
         String loadUrl = url + surfpred;
         System.out.println("Loading surface accesibility file : " + loadUrl);
-        // out.println("Loading disorder file : " + loadUrl);
 
         String l;
-        // StringBuilder b = new StringBuilder();
         BufferedReader input;
         try {
             input = new BufferedReader(new InputStreamReader(
@@ -224,7 +211,6 @@ public class XtalPred2JSON extends HttpServlet {
     private boolean loadFasta(ProteinObj p, String url, PrintWriter out) {
         String loadUrl = url + fasta;
         System.out.println("Loading fasta file : " + loadUrl);
-        // out.println("Loading fasta file : " + loadUrl);
 
         String l;
         StringBuilder b = new StringBuilder();
@@ -248,10 +234,8 @@ public class XtalPred2JSON extends HttpServlet {
             p.setSequence(b.toString());
             return true;
         } catch (MalformedURLException e) {
-
             e.printStackTrace();
         } catch (IOException e) {
-
             e.printStackTrace();
         }
         return false;
@@ -260,7 +244,6 @@ public class XtalPred2JSON extends HttpServlet {
     private boolean loadDisopred(ProteinObj p, String url, PrintWriter out) {
         String loadUrl = url + disopred;
         System.out.println("Loading disorder file : " + loadUrl);
-        // out.println("Loading disorder file : " + loadUrl);
 
         String l;
         BufferedReader input;
